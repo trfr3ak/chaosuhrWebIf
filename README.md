@@ -11,6 +11,8 @@ Erweitert von Jonas Krug
   - Gif-Animations Player: beliebige Gif-Animationen können abgespielt werden
   - Wetteranzeige mit Daten von weatherbit.io
   - Zeitschaltung der Uhr
+  
+ ![Screenshot1](Screenshot/screenshot1.jpg)
 
 
 ### FAQ
