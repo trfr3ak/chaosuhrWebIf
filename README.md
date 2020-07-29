@@ -58,4 +58,7 @@ Anleitung zur Installation des Plugins (da das manchen Probleme bereite hatte): 
 5. Lade über `Werkzeuge-->ESP8266 Sketch Data Upload` die Gif-Animationen, sowie das Webinterface hoch.
 6. Fertig. Der Wemos kann nun mit deiner Uhr verbunden werden, die restlichen Einstellungen lassen sich über das Webinterface vornehmen.
 
+## Bekannte Bugs
+* Das Webinterface reagiert nicht, während eine Gif-Animation abgespielt wird.
+
 
