@@ -224,7 +224,7 @@ void setup() {
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
   wifiManager.setBreakAfterConfig(true);
   if (!wifiManager.autoConnect(host)) {
-    Serial.println("failed to connect, we should reset as see if it connects");
+    Serial.println("failed to connect, we should reset and see if it connects");
     delay(5000);
     ESP.reset();
   }
@@ -352,6 +352,15 @@ void setup() {
 
     server.on("/restart", HTTP_GET, []() {
       server.send(200, "text/html", "Restart_Ok");
+      FastLED.setBrightness(brightness);
+        matrix->fillScreen(matrix->Color(128, 255, 0));
+        matrix->setTextColor(matrix->Color(0, 0, 255));
+        matrix->setCursor(1, 6);
+        matrix->setFont(&Picopixel);
+        matrix->print("Rload");
+        matrix->setCursor(1, 13);
+        matrix->print("Chaos");
+        matrix->show();
       delay(500);
       ESP.restart();
     });
@@ -1121,7 +1130,7 @@ void showWeather() {
       gifPlayer.parseGlobalColorTable();
       gifPlayer.drawFrame();
     } else {
-      File imageFile = SPIFFS.open("/weather/cloudy.gif", "r");
+      File imageFile = SPIFFS.open("/weather/cloudy_n.gif", "r");
       gifPlayer.setFile(imageFile);
       gifPlayer.parseGifHeader();
       gifPlayer.parseLogicalScreenDescriptor();

@@ -1191,9 +1191,7 @@ return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.p
 
 		  $("#resetWifi").click(function(){
 		  		$.get( "/resetWifiConfig", function( data ) {
-		  			if(data == "ResetWifiConifg_ok"){
-		  				alert("erfolgreich gelöscht. Du musst die Uhr nun neu mit einem Wlan verbinden um sie nutzen zu können.");
-		  			}
+		  			alert("Wlan-Daten erfolgreich gelöscht. Du musst die Uhr nun neu mit einem Wlan verbinden um sie nutzen zu können.");
 		  		});
 		  });
 	
