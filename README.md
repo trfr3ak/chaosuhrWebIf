@@ -42,6 +42,8 @@ Aus urheberrechtlichen Gründen können die meisten Gif-Animationen nicht auf Gi
 
 Zum flashen des Wemos D1 (oder einem ähnlichen Gerät) wird die [Arduino IDE](https://www.arduino.cc/en/main/software) benötigt.
 Um das Webinterface und die Gif-Animationen auf den Wemos zu spielen wird außerdem das Arduino IDE Plugin ESP8266fs benötigt: (https://github.com/esp8266/arduino-esp8266fs-plugin) - Bitte Anweisungen zur Installation genau folgen.
+Anleitung zur Installation des Plugins (da das manchen Probleme bereite hatte): https://randomnerdtutorials.com/install-esp8266-filesystem-uploader-arduino-ide/
+
 
 ##### Erstinstallationsschritte:
 1. Kopiere den Sketch in deinen Sketchfolder (unter Windows: `C:\Users\ [Benutzer] \Documents\Arduino`)
