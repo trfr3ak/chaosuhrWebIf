@@ -19,7 +19,7 @@ Erweitert von Jonas Krug
 ### FAQ
 
 * __Wie funktioniert die Wetteranzeige?__
-Du benötigst einen kostenlosen Account bei weatherbit.io. Auf der Website lässt sich dann ein API-Key generieren, den du in den Sketch einträgst.
+Du benötigst einen kostenlosen Account bei [weatherbit.io](https://www.weatherbit.io/). Auf der Website lässt sich dann ein API-Key generieren, den du in den Sketch einträgst.
 
 * __Wo gebe ich die Wlan-Daten ein?__
 Der Sketch verwendet die WifiManager-Library. Dies bedeutet, dass der ESP automatisch einen offenen Wlan-Hotspot öffnet. (Standardmäßig mit dem Namen "ChaosUhr") Sobald du dich mit dem Wlan verbindest kannst du dort deine Wlan-Daten eingeben. Falls du eine falsche Eingabe gemacht hast, oder das Wlan nicht mehr verfügbar ist, öffnet der ESP automatisch wieder den offenen Wlan-Hotspot, ansonsten verbindet er sich mit den von dir eingegebenen Wlan-Daten.
