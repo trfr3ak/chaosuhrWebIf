@@ -13,6 +13,7 @@ Erweitert von Jonas Krug
   - Zeitschaltung der Uhr
   
  ![Screenshot1](Screenshot/screen1.jpg)
+ ![Screenshot2](Screenshot/screen2.jpg)
 
 
 ### FAQ
