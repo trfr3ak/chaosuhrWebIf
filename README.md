@@ -51,7 +51,7 @@ Um das Webinterface und die Gif-Animationen auf den Wemos zu spielen wird außer
 * [FastLED_NeoMatrix](https://github.com/marcmerlin/FastLED_NeoMatrix)
 * [WiFiManager](https://github.com/tzapu/WiFiManager)
 * [ArduinoJson](https://github.com/bblanchon/ArduinoJson)
-* Zudem muss das ESP8266 Board hinzugefügt werden. ([Anleitung:](https://randomnerdtutorials.com/how-to-install-esp8266-board-arduino-ide/))
+* Zudem muss das ESP8266 Board hinzugefügt werden. ([Anleitung](https://randomnerdtutorials.com/how-to-install-esp8266-board-arduino-ide/))
 4. Kompiliere und lade den Sketch auf den Wemos in der Arduino IDE über `Sketch-->Hochladen`
 5. Lade über `Werkzeuge-->ESP8266 Sketch Data Upload` die Gif-Animationen, sowie das Webinterface hoch.
 6. Fertig. Der Wemos kann nun mit deiner Uhr verbunden werden, die restlichen Einstellungen lassen sich über das Webinterface vornehmen.
