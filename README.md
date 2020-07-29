@@ -31,7 +31,7 @@ Leider nein. Der Arduino nutzt einen NTP-Server, um sich die aktuelle Zeit zu ho
 Um die IP-Adresse der Uhr herauszufinden, kannst du entweder in das Webinterface deines Routers schauen, oder du nutzt einen Ip-Scanner um alle Geräte in deinem Netzwerk zu finden.
 
 * __Wie update ich die Firmware?__
-Der Sketch lässt sich über das Webinterface updaten. Sollte allerdings das Webinterface selbst ein Update erhalten, so musst du es über den _ESP8266 Sketch Data Upload_ (siehe Installation Punkt 5) updaten.
+Der Sketch lässt sich über das Webinterface updaten. Sollte allerdings das Webinterface selbst ein Update erhalten, so musst du es über den `ESP8266 Sketch Data Upload` (siehe Installation Punkt 5) updaten.
 Neue Gif-Animationen lassen sich ebenfalls einfach über das Webinterface hochladen.
 
 * __Wieso gibt es so wenige Gif-Animationen im Repository?__
@@ -48,7 +48,7 @@ Um das Webinterface und die Gif-Animationen auf den Wemos zu spielen wird außer
 2. Passe die Einstellungen in der Config.h nach deinen Wünschen an (hier lässt sich die WetterAPI eintragen, sowie die Anzahl Pixel und die Amperezahl deines Netzteils)
 3. Installiere fehlende Libraries über den Arduino-Library-Manager nach:
 * [FastLED](https://github.com/FastLED/FastLED)
-* [FastLED_NeoMatrix](https://github.com/marcmerlin/FastLED_NeoMatrix))
+* [FastLED_NeoMatrix](https://github.com/marcmerlin/FastLED_NeoMatrix)
 * [WiFiManager](https://github.com/tzapu/WiFiManager)
 * [ArduinoJson](https://github.com/bblanchon/ArduinoJson)
 * Zudem muss das ESP8266 Board hinzugefügt werden. ([Anleitung:](https://randomnerdtutorials.com/how-to-install-esp8266-board-arduino-ide/))
