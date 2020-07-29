@@ -12,7 +12,7 @@ Erweitert von Jonas Krug
   - Wetteranzeige mit Daten von weatherbit.io
   - Zeitschaltung der Uhr
   
- ![Screenshot1](Screenshot/screenshot1.jpg)
+ ![Screenshot1](Screenshot/screen1.jpg)
 
 
 ### FAQ
