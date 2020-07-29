@@ -223,7 +223,7 @@ void setup() {
   WiFi.hostname(host);
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
   wifiManager.setBreakAfterConfig(true);
-  if (!wifiManager.autoConnect("ChaosUhr")) {
+  if (!wifiManager.autoConnect(host)) {
     Serial.println("failed to connect, we should reset as see if it connects");
     delay(5000);
     ESP.reset();
@@ -352,6 +352,25 @@ void setup() {
 
     server.on("/restart", HTTP_GET, []() {
       server.send(200, "text/html", "Restart_Ok");
+      delay(500);
+      ESP.restart();
+    });
+
+    server.on("/resetWifiConfig", HTTP_GET, []() {
+        FastLED.setBrightness(brightness);
+        matrix->fillScreen(matrix->Color(179, 30, 0));
+        matrix->setTextColor(matrix->Color(0, 149, 179));
+        matrix->setCursor(1, 6);
+        matrix->setFont(&Picopixel);
+        matrix->print("Reset");
+        matrix->setCursor(1, 13);
+        matrix->print("WiFi");
+        matrix->show();
+        
+      server.send(200, "text/html", "ResetWifiConfig_ok");
+        delay(500);
+      WiFiManager wifiManager;
+      wifiManager.resetSettings();
       delay(500);
       ESP.restart();
     });

@@ -1018,6 +1018,15 @@
 <hr />
 <div class="form-group row">
 	<div class="col-sm-3">
+<label for="resetwifi"><b>Wlan-Zugangsdaten löschen</b></label></div>
+<div class="col-sm-3">
+
+	<input type="button" value="Wlan-Daten löschen" id="resetWifi">
+</div>
+<div class="col-sm-6"><small class="text-muted">Wlan-Daten der Uhr werden gelöscht und müssen erneut im offenen AP eingetragen werden.</small></div>
+</div>
+<div class="form-group row">
+	<div class="col-sm-3">
 <label for="restart"><b>Uhr neustarten</b></label></div>
 <div class="col-sm-3">
 <form id="restart">
@@ -1179,6 +1188,14 @@ return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.p
 		  	
 });
 	});
+
+		  $("#resetWifi").click(function(){
+		  		$.get( "/resetWifiConfig", function( data ) {
+		  			if(data == "ResetWifiConifg_ok"){
+		  				alert("erfolgreich gelöscht. Du musst die Uhr nun neu mit einem Wlan verbinden um sie nutzen zu können.");
+		  			}
+		  		});
+		  });
 	
 	$( "#brightness" ).change(function() {
 		var $brightness = $(this).val();
