@@ -11,7 +11,10 @@
 #include <FS.h>
 
 #define FASTLED_FORCE_SOFTWARE_SPI
-#include <ArduinoJson.h>
+
+// ----------------------------
+// Standard Libraries
+// ----------------------------
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
 #include <WiFiClientSecure.h>
@@ -23,17 +26,24 @@
 #include <EEPROM.h>
 #include <SPI.h>
 
-/*
+
+
+// ----------------------------
+// Additional Libraries - each one of these will need to be installed.
+// ----------------------------
+
+#include <ArduinoJson.h>
+
 #include <ArduinoSpotify.h>
 // Library for connecting to the Spotify API
 
 // Install from Github
 // https://github.com/witnessmenow/arduino-spotify-api
-*/
+
 
 
 #include "GifPlayer.h"
-GifPlayer gifPlayer;
+GifPlayer gifPlayer;      //Takes up a looooot of Ram!
 #include "Config.h"
 
 
@@ -76,7 +86,7 @@ ESP8266WebServer server(80);
 //  **************************
 
 int rounds = 0;
-uint8_t x = matrix->width();
+int x = matrix->width();
 uint8_t pass = 0;
 uint8_t pass1 = 0;
 
@@ -93,12 +103,12 @@ static char buf[15];                                    // je nach Format von "s
 bool clockSleep = 0;
 
 
-
+WiFiClientSecure client;
 
 //  **************************
 //  *      Spotify           *
 //  **************************
-/*
+
 ArduinoSpotify spotify(client, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN);
 unsigned long delayBetweenRequests = 60000; // Time between requests (1 minute)
 unsigned long requestDueTime;               //time when request due
@@ -108,7 +118,7 @@ bool spotifyPlaying;
 
 // Hier noch host einfügen!!
 char callbackURI[] = "http%3A%2F%2Fchaosuhr.local%2Fcallback%2F";
-*/
+
 
 
 
@@ -143,29 +153,29 @@ void setup() {
 
     //Write Default Settings
 
-    EEPROM.write(0, 90);    //brightness
+    EEPROM.write(0, 90);    // brightness
     EEPROM.write(1, 2);     // UhrAnimation
-    EEPROM.write(2, 4); //FaceAnimation
-    EEPROM.write(3, 10);  //Face2Animation
-    EEPROM.write(4, 4);  //Face3Animation
-    EEPROM.write(5, 15);  //FiresAnimation
-    EEPROM.write(6, 3);  //DrinkAnimation
-    EEPROM.write(7, 8);  //DigiDugAnimation
-    EEPROM.write(8, 5);  //QbertAnimation
+    EEPROM.write(2, 4); // FaceAnimation
+    EEPROM.write(3, 10);  // Face2Animation
+    EEPROM.write(4, 4);  // Face3Animation
+    EEPROM.write(5, 15);  // FiresAnimation
+    EEPROM.write(6, 3);  // DrinkAnimation
+    EEPROM.write(7, 8);  // DigiDugAnimation
+    EEPROM.write(8, 5);  // QbertAnimation
     EEPROM.write(9, 1100 / 10);    //DemoReel1DugAnimation
     EEPROM.write(10, 510 / 10);   //DemoReel1DugAnimation
-    EEPROM.write(11, 20);  //WetterAnimation
-    EEPROM.write(59, 0); //Zeitschaltung1 deaktiviert
-    EEPROM.write(60, 18); //Stunden (von)
-    EEPROM.write(61, 0); //Minuten (von)
-    EEPROM.write(62, 0); //Stunden (bis)
-    EEPROM.write(63, 0); //Minuten (bis)
-    EEPROM.write(64, 0); //Zeitschaltung2 deaktiviert
-    EEPROM.write(65, 18); //Stunden (von)
-    EEPROM.write(66, 0); //Minuten (von)
-    EEPROM.write(67, 0); //Stunden (bis)
-    EEPROM.write(68, 0); //Minuten (bis)
-    EEPROM.write(69, 1);
+    EEPROM.write(11, 20);  // WetterAnimation
+    EEPROM.write(59, 0); // Zeitschaltung1 deaktiviert
+    EEPROM.write(60, 18); // Stunden (von)
+    EEPROM.write(61, 0); // Minuten (von)
+    EEPROM.write(62, 0); // Stunden (bis)
+    EEPROM.write(63, 0); // Minuten (bis)
+    EEPROM.write(64, 0); // Zeitschaltung2 deaktiviert
+    EEPROM.write(65, 18); // Stunden (von)
+    EEPROM.write(66, 0); // Minuten (von)
+    EEPROM.write(67, 0); // Stunden (bis)
+    EEPROM.write(68, 0); // Minuten (bis)
+    EEPROM.write(69, 1); // Ersteinrichtung
     EEPROM.write(70, 1); // Autoplay
     EEPROM.write(71, 0); // Standbild-Animation
     EEPROM.write(72, 0);
@@ -174,14 +184,14 @@ void setup() {
     EEPROM.write(75, 0);
     EEPROM.write(76, 0);
     EEPROM.write(77, 0);
-    EEPROM.write(78, 0);  //Schriftart
-    EEPROM.write(80, 0);  //R-Wert Uhr Hintergrund
-    EEPROM.write(81, 0);  //G-Wert Uhr Hintergrund
-    EEPROM.write(82, 0);  //B-Wert Uhr Hintergrund
-    EEPROM.write(83, 0);  //Watchface
-    EEPROM.write(84, 1);  //Legacy or Gif-Autoplay?
-    EEPROM.write(85, 0);  //Wetter-Anzeige im Autoplay aktiviert?
-    EEPROM.write(100, 10); //Anzahl Wiederholungen der Gif-Animation
+    EEPROM.write(78, 0);  // Schriftart
+    EEPROM.write(80, 0);  // R-Wert Uhr Hintergrund
+    EEPROM.write(81, 0);  // G-Wert Uhr Hintergrund
+    EEPROM.write(82, 0);  // B-Wert Uhr Hintergrund
+    EEPROM.write(83, 0);  // Watchface
+    EEPROM.write(84, 1);  // Legacy or Gif-Autoplay?
+    EEPROM.write(85, 0);  // Wetter-Anzeige im Autoplay aktiviert?
+    EEPROM.write(100, 10); // Anzahl Wiederholungen der Gif-Animation
     EEPROM.commit();
   }
 
@@ -232,8 +242,7 @@ void setup() {
 
 
     server.on("/brightness", HTTP_GET, []() {
-      String value = server.arg("value");
-      setBrightness(value.toInt());
+      setBrightness(server.arg("value").toInt());
     });
 
     server.on("/getSPIFFSsize", HTTP_GET, []() {
@@ -245,9 +254,8 @@ void setup() {
     });
 
     server.on("/settingread", HTTP_GET, []() {
-      int name = server.arg("name").toInt();
-      int value = EEPROM.read(name);
-      server.send(200, "text/json", String(value));
+
+      server.send(200, "text/json", String(EEPROM.read(server.arg("name").toInt())));
     });
 
     server.on("/settingwrite", HTTP_GET, []() {
@@ -297,9 +305,9 @@ void setup() {
     server.on("/writetextcolor", HTTP_GET, []() {
       String value = server.arg("value");
       long number = strtol(&value[0], NULL, 16);
-      long red = number >> 16;
-      long green = number >> 8 & 0xFF;
-      long blue = number & 0xFF;
+      uint8_t red = number >> 16;
+      uint8_t green = number >> 8 & 0xFF;
+      uint8_t blue = number & 0xFF;
       EEPROM.write(75, red);
       EEPROM.write(76, green);
       EEPROM.write(77, blue);
@@ -422,15 +430,9 @@ void setup() {
 
 
   // Crashes the ESP8266.. needs further investigation - Probably  Stack overflow -- Need to clean up Ram
-
-
-  // If you want to enable some extra debugging
-  // uncomment the "#define SPOTIFY_DEBUG" in ArduinoSpotify.h
-
-
-
-
 /*
+  client.setFingerprint(SPOTIFY_FINGERPRINT);
+
   Serial.println(F("Refreshing Access Tokens"));
   if (!spotify.refreshAccessToken()) {
     Serial.println(F("Failed to get access tokens"));
@@ -648,21 +650,9 @@ void setBrightness(uint8_t value)
 
   EEPROM.write(0, value);
   EEPROM.commit();
-
-  broadcastInt("brightness", value);
 }
 
-void broadcastInt(String name, uint8_t value)
-{
-  String json = "{\"name\":\"" + name + "\",\"value\":" + String(value) + "}";
-  //  webSocketsServer.broadcastTXT(json);
-}
 
-void broadcastString(String name, String value)
-{
-  String json = "{\"name\":\"" + name + "\",\"value\":\"" + String(value) + "\"}";
-  //  webSocketsServer.broadcastTXT(json);
-}
 
 
 void showBitmap()
@@ -700,6 +690,7 @@ SimplePatternList gPatterns = {Uhrzeit, Face, Face2, Face3, Fires, Drink, DigiDu
 
 String Pattern;
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
+
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 
@@ -765,7 +756,7 @@ void loop() {
               nextPattern();
             }
           }
-        }
+        } 
       } else {   //GIF - ANIMATIONEN ////////////////////////////////////
 
 
@@ -779,7 +770,6 @@ void loop() {
             } else {
               if (durchgang >= EEPROM.read(1)) {
                 showWeather();
-
               } else {
                 Uhrzeit();
               }
@@ -943,6 +933,7 @@ void solidColor() {
 void showWeather() {
 
 
+
   if (millis() - lastConnectionTime > postingInterval) {
     updateWeather();
   }
@@ -961,6 +952,7 @@ void showWeather() {
 
     if (!partofday) {
       File imageFile = SPIFFS.open("/weather/cloudy.gif", "r");
+      
       gifPlayer.setFile(imageFile);
       gifPlayer.parseGifHeader();
       gifPlayer.parseLogicalScreenDescriptor();
@@ -1084,6 +1076,7 @@ void showWeather() {
   matrix->show();
   delay(125);
   durchgang++;
+  
 }
 
 
@@ -1232,6 +1225,7 @@ bool checkClockSleep() {
 //  ***************************
 
 void nextPattern() {
+  
   int lastpattern = gCurrentPatternNumber;
   //int pattern;
   if (lastpattern == 0) {
@@ -1244,6 +1238,7 @@ void nextPattern() {
     UhrzeitFarbWechsel();
     gCurrentPatternNumber = 0;
   }
+  
 }
 
 

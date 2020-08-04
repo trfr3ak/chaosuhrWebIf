@@ -4,7 +4,7 @@
 //  ***************************
 
 void Drink() {
- /* int rounds = 0;
+  int rounds = 0;
   while (rounds <= EEPROM.read(6)) {
     //    1st Frame
     FastLED.clear();
@@ -135,12 +135,12 @@ void Drink() {
     delay(200);
     rounds++;
   }
-  nextPattern();*/
+  nextPattern();
 }
 
 
 void Qbert() {
-  /*
+  
   int rounds = 0;
   while (rounds <= EEPROM.read(8)) {
     //    1st Frame
@@ -161,11 +161,11 @@ void Qbert() {
     delay(500);
     rounds++;
   }
-  nextPattern();*/
+  nextPattern();
 }
 
 void DigiDug() {
-  /*
+  
   int rounds = 0;
   while (rounds <= EEPROM.read(7)) {
     //    1st Frame
@@ -185,11 +185,11 @@ void DigiDug() {
     delay(250);
     rounds++;
   }
-  nextPattern();*/
+  nextPattern();
 }
 
 void Face() {
-  /*
+  
   int rounds = 0;
   while (rounds < EEPROM.read(2)) {
     //    1st Frame
@@ -282,11 +282,11 @@ void Face() {
     rounds++;
   }
   nextPattern();
-  */
+  
 }
 
 void Face2() {
-  /*
+  
   int rounds = 0;
   while (rounds < EEPROM.read(3)) {
     //    1st Frame
@@ -307,11 +307,11 @@ void Face2() {
     rounds++;
   }
   nextPattern();
-  */
+  
 }
 
 void Face3() {
-  /*
+  
   int rounds = 0;
   while (rounds < EEPROM.read(4)) {
     //  1st Frame
@@ -436,11 +436,11 @@ void Face3() {
     rounds++;
   }
   nextPattern();
-  */
+  
 }
 
 void Fires() {
-  /*
+  
   int rounds = 0;
   while (rounds < EEPROM.read(5)) {
     //  1st Frame
@@ -493,7 +493,7 @@ void Fires() {
     rounds++;
   }
   nextPattern();
-  */
+  
 }
 
 //  ***************************
