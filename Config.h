@@ -8,14 +8,32 @@
 //                  *      Hostname      *
 //                  **********************
 
-const char* host     = "ChaosUhr";               // WLAN Name
+#define HOSTNAME    "ChaosUhr"               // WLAN Name
 
 //                 ***********************
 //                 *Wetter Einstellungen *
 //                 ***********************
 
-const char* weatherAPI = "";      //WetterAPI von weatherbit.io
-const char* weatherLocation = "";                      //Ort für Wetter
+#define WEATHER_API ""      //WetterAPI von weatherbit.io
+#define WEATHER_LOCATION ""                     //Ort für Wetter
+
+
+//                  *************************
+//                  * Spotify Einstellungen *
+//                  *************************
+
+#define SPOTIFY_CLIENT_ID "" // Your client ID of your spotify APP
+#define SPOTIFY_CLIENT_SECRET "" // Your client Secret of your spotify APP (Do Not share this!)
+
+// Country code, including this is advisable
+#define SPOTIFY_MARKET "DE"
+
+#define SPOTIFY_REFRESH_TOKEN ""
+
+
+
+
+
 
 //                  *************************
 //                  * FastLED Einstellungen *

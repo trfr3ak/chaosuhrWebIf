@@ -36,6 +36,25 @@
 	a,p,h1,h2,h3,h4,label,small{
 		color:#fff;
 	}
+	.inputTransparent{
+		border:  1px solid white;
+		color:white;
+		background: rgba(30,30,30,40);
+		padding: 5px;
+		text-align: center;
+		text-align-last: center;
+		border-radius: 25px;
+	}
+	.inputColor{
+		-webkit-appearance: none;
+	border: none;
+	border-radius: 10px;
+	width: 32px;
+	height: 32px;
+	}
+	option{
+		background-color:black;
+	}
 	hr{
 		border: solid #671e00 1px;
 		margin-top: 30px;
@@ -172,13 +191,13 @@
 <label for="timer"><b>Zeitschaltung 1 aktiviert?</b></label>
 </div>
 <div class="col-sm-9" style="color:white">
-<select id="timer1">
+<select id="timer1" class="inputTransparent">
     <option value="0">deaktiviert</option>
     <option value="1">aktiviert</option>
   </select>
   | von
-<input type="time" style="width:80px;" id="timertime1_1"  min="00:00" max="23:59"> bis 
-<input type="time" style="width:80px;" id="timertime1_2"  min="00:00" max="23:59">
+<input type="time" class="inputTransparent" style="width:100px;" id="timertime1_1"  min="00:00" max="23:59"> bis 
+<input type="time" class="inputTransparent" style="width:100px;" id="timertime1_2"  min="00:00" max="23:59">
 </div></div>
 
 
@@ -189,13 +208,13 @@
 <label for="timer"><b>Zeitschaltung 2 aktiviert?</b></label>
 </div>
 <div class="col-sm-9" style="color:white">
-<select id="timer2">
+<select id="timer2" class="inputTransparent">
     <option value="0">deaktiviert</option>
     <option value="1">aktiviert</option>
   </select>
   | von
-<input type="time" style="width:80px;" id="timertime2_1"  min="00:00" max="23:59"> bis 
-<input type="time" style="width:80px;" id="timertime2_2"  min="00:00" max="23:59">
+<input type="time" class="inputTransparent" style="width:100px;" id="timertime2_1"  min="00:00" max="23:59"> bis 
+<input type="time" class="inputTransparent" style="width:100px;" id="timertime2_2"  min="00:00" max="23:59">
 </div></div>
 
 
@@ -206,7 +225,7 @@
 <label for="font"><b>Schriftart</b></label>
 </div>
 <div class="col-sm-9">
-<select id="font">
+<select id="font" class="inputTransparent">
     <option value="0">TomThumb</option>
     <option value="1">Picopixel</option>
     <option value="2">Apridot</option>
@@ -222,10 +241,12 @@
 <label for="watchface"><b>Watchface</b></label>
 </div>
 <div class="col-sm-9">
-<select id="watchface">
-    <option value="0">Laufuhr (Standard)</option>
-    <option value="1">Game Frame Clone</option>
-    <option value="2">Simple Clock</option>
+<select id="watchface" class="inputTransparent">
+    <option value="0">Laufuhr (by Micha1986)</option>
+    <option value="1">Game Frame Clone (by trfr3ak)</option>
+    <option value="2">Simple Clock (by trfr3ak)</option>
+    <option value="3">Fire Clock (by Xenum)</option>
+    <option value="4">Neo Clock (by Xenum)</option>
   </select>
 </div></div>
 
@@ -234,7 +255,7 @@
 <label for="watchcolor"><b>Uhr-Hintergrund</b></label>
 </div>
 <div class="col-sm-9">
-<input type="color" id="watchcolor">
+<input type="color" id="watchcolor" class="inputColor">
 </div></div>
 
 
@@ -247,8 +268,8 @@
 	<label for="animationactive" class="control-label"><b>Autoplay aktiviert?</b></label>
 
 </div>
-<div class="col-sm-2">
-<select class="custom-select mr-sm-2" id="animationactive">
+<div class="col-sm-3">
+<select class="custom-select mr-sm-2 inputTransparent" id="animationactive" style="width:100px">
         <option value="1">ja</option>
         <option value="0">nein</option>
       </select>
@@ -269,8 +290,8 @@
 	<label for="animationcontin" class="control-label"><b>Dauerhaftes Bild</b></label>
 
 </div>
-<div class="col-sm-2">
-<select class="custom-select mr-sm-2" id="animationcontin">
+<div class="col-sm-3">
+<select class="custom-select mr-sm-2 inputTransparent" id="animationcontin" style="width:200px">
         <option value="0">Uhr</option>
         <option value="1">Lauftext</option>
         <option value="2">Farbe</option>
@@ -309,10 +330,10 @@
 	<label for="scrolltext" class="control-label"><b>Lauftext</b></label>
 
 </div>
-<div class="col-sm-2">
-<input type="text" id="scrolltext">
+<div class="col-sm-3">
+<input type="text" id="scrolltext" class="inputTransparent">
       
-      	<input type="color" id="textcolor" >
+      	<input type="color" id="textcolor" class="inputColor" >
       	<small class="text-muted" id="scrolltextcolor_show"></small>
       </div>
       <div class="col-sm-6">
@@ -330,9 +351,9 @@
 	<label for="solidcolor" class="control-label"><b>Einfarbig</b></label>
 
 </div>
-<div class="col-sm-2">
+<div class="col-sm-3">
       
-      	<input type="color" id="color">
+      	<input type="color" id="color" class="inputColor">
       	<small class="text-muted" id="solidcolor_show"></small>
       </div>
       <div class="col-sm-6">
@@ -776,7 +797,7 @@
 
 </div>
 <div class="col-sm-2">
-<select class="custom-select mr-sm-2" id="legacyautoplay">
+<select class="custom-select mr-sm-2 inputTransparent" id="legacyautoplay" style="width:100px">
         <option value="1">ja</option>
         <option value="0">nein</option>
       </select>
@@ -791,13 +812,32 @@
 </form>
 <p></p>
 
+	<div class="form-group row" data-field-type="Boolean">
+<div class="col-sm-3">
+	<label for="repeatGif" class="control-label"><b>Gif-Wiederholungen</b></label>
+
+</div>
+<div class="col-sm-2">
+	<input type="number" min="0" max="255" class="form-control input inputTransparent" id="repeatGif">
+
+      </div>
+      <div class="col-sm-6">
+    <small class="text-muted">
+      Anzahl der Wiederholungen einer Gif-Animation.
+    </small><small>Standardwert: 10</small>
+	</div>
+	</div>
+
+
+	<p></p>
+
 
 
   <div class="form-group row" data-field-type="Number">
   	<div class="col-sm-3">
     <label for="uhr" class="control-label"><b>Uhr-Animation</b></label></div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control input" id="uhr">
+    <input type="number" min="0" max="255" class="form-control input inputTransparent" id="uhr">
     </div>
     <div class="col-sm-6">
     <small class="text-muted">
@@ -812,7 +852,7 @@
 <label for="weather"><b>Wetter im Autoplay</b></label>
 </div>
 <div class="col-sm-9">
-<select id="weather">
+<select id="weather" class="inputTransparent">
     <option value="1">aktiviert</option>
     <option value="0">deaktiviert</option>
   </select>
@@ -823,7 +863,7 @@
   	<div class="col-sm-3">
     <label for="wetterdauer" class="control-label"><b>Wetter-Anzeige</b></label></div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control input" id="wetterdauer">
+    <input type="number" min="0" max="255" class="form-control input inputTransparent" id="wetterdauer">
     </div>
     <div class="col-sm-6">
     <small class="text-muted">
@@ -865,11 +905,11 @@
 </svg>Legacy-Animationen</h2>
 <div id="LegacyAnimation" class="collapse">
 
-      <div class="form-group row" data-field-type="Number">
+      <div class="form-group row">
       	<div class="col-sm-3">
     <label for="face"><b>FaceAnimation</b></label></div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control" id="face">
+    <input type="number" min="0" max="255" class="form-control inputTransparent" id="face">
 	</div>
 	<div class="col-sm-6">
     <small class="text-muted">
@@ -884,7 +924,7 @@
     	<div class="col-sm-3">
     <label for="face2"><b>Face2Animation</b></label></div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control" id="face2">
+    <input type="number" min="0" max="255" class="form-control inputTransparent" id="face2">
 	</div>
 	<div class="col-sm-6">
     <small class="text-muted">
@@ -899,7 +939,7 @@
     	<div class="col-sm-3">
     <label for="face3"><b>Face3Animation</b></label></div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control" id="face3">
+    <input type="number" min="0" max="255" class="form-control inputTransparent" id="face3">
 	</div>
 	<div class="col-sm-6">
     <small class="text-muted">
@@ -914,7 +954,7 @@
     	<div class="col-sm-3">
     <label for="fires"><b>Fires-Animation</b></label></div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control" id="fires">
+    <input type="number" min="0" max="255" class="form-control inputTransparent" id="fires">
 	</div>
 	<div class="col-sm-6">
     <small class="text-muted">
@@ -929,7 +969,7 @@
     	<div class="col-sm-3">
     <label for="drink"><b>Drink-Animation</b></label></div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control" id="drink">
+    <input type="number" min="0" max="255" class="form-control inputTransparent" id="drink">
 	</div>
 	<div class="col-sm-6">
     <small class="text-muted">
@@ -944,7 +984,7 @@
     	<div class="col-sm-3">
     <label for="digidug"><b>DigiDug-Animation</b></label></div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control" id="digidug">
+    <input type="number" min="0" max="255" class="form-control inputTransparent" id="digidug">
 	</div>
 	<div class="col-sm-6">
     <small class="text-muted">
@@ -959,7 +999,7 @@
     	<div class="col-sm-3">
     <label for="qbert"><b>Qbert-Animation</b></label></div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control" id="qbert">
+    <input type="number" min="0" max="255" class="form-control inputTransparent" id="qbert">
 	</div>
 	<div class="col-sm-6">
     <small class="text-muted">
@@ -975,7 +1015,7 @@
     <label for="demoreel1"><b>DemoReellDug-Animation</b></label>
 </div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control" id="demoreel1">
+    <input type="number" min="0" max="255" class="form-control inputTransparent" id="demoreel1">
 	</div>
 	<div class="col-sm-6">
     <small class="text-muted">
@@ -990,7 +1030,7 @@
     	<div class="col-sm-3">
     <label for="demoreel2"><b>DemoReel2-Animation</b></label></div>
     <div class="col-sm-2">
-    <input type="number" min="0" max="255" class="form-control" id="demoreel2">
+    <input type="number" min="0" max="255" class="form-control inputTransparent" id="demoreel2">
 	</div>
 	<div class="col-sm-6">
     <small class="text-muted">
@@ -1140,6 +1180,7 @@ $(document).ready(function() {
 	      $.get( "/settingread?name=83", function( data ) {$("#watchface").val(data);console.log(data);});
 	      $.get( "/settingread?name=84", function( data ) {$("#legacyautoplay").val(data);console.log(data);});
 	      $.get( "/settingread?name=85", function( data ) {$("#weather").val(data);console.log(data);});
+	      $.get( "/settingread?name=100", function( data ){$("#repeatGif").val(data);console.log(data);});
 	      
 	var gifdropzone = new Dropzone("#gifdropzone", {
 		addRemoveLinks: true,
@@ -1363,6 +1404,17 @@ return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.p
 
     });
 
+   $("#repeatGif").on("change", function(){
+      var $value = $(this).val();
+    $.get("/settingwrite?name=100&value="+$value, function( data ){
+
+    });
+
+    });
+
+
+     
+
 
 
      $("#timer1").on("change", function(){
@@ -1446,6 +1498,9 @@ return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.p
     });
 
     });
+
+
+
 
 
 

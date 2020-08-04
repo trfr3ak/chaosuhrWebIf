@@ -1,10 +1,12 @@
+
+
 // ******************************************************************************
 // *************            ChaosUhr mit Webinterface.              *************
 // *************       Sketch basiert auf dem von Micha1986         *************
 // *************       erweitert und ergänzt von Jonas Krug         *************
 // ******************************************************************************
 
-// Version 0.11
+// Version 0.12
 
 #include <FS.h>
 
@@ -20,9 +22,20 @@
 #include <time.h>
 #include <EEPROM.h>
 #include <SPI.h>
+
+/*
+#include <ArduinoSpotify.h>
+// Library for connecting to the Spotify API
+
+// Install from Github
+// https://github.com/witnessmenow/arduino-spotify-api
+*/
+
+
 #include "GifPlayer.h"
 GifPlayer gifPlayer;
 #include "Config.h"
+
 
 // Fonts
 #include <Fonts/Picopixel.h>
@@ -30,9 +43,6 @@ GifPlayer gifPlayer;
 #include "Fonts/apridot4pt7b.h"
 #include "Fonts/spacerock_minecraft4pt7b.h"
 #include "Fonts/art_bitco4pt7b.h"
-#include "Fonts/burbank_big_2_03pt7b.h"
-#include "Fonts/burbank_big_2_04pt7b.h"
-#include "Fonts/to_infinity2pt7b.h"
 #include "Fonts/to_infinity3pt7b.h"
 
 #include <pgmspace.h>  // Needed to store stuff in Flash using PROGMEM
@@ -50,30 +60,14 @@ GifPlayer gifPlayer;
 #include "legacy/Drink.h"
 
 
-//                  ***************************
-//                  * Animation Einstellungen *
-//                  ***************************
-int UhrAnimation = 2;                             // Anzahl Durchläufe Datum/Uhrzeit
-int WeatherAnimation = 20;                        // Anzahl Durchläufe Wetter
-int FaceAnimation = 4;                            // Anzahl Durchläufe der Animation "blaues Gesicht" (ca. 5300ms pro Durchgang)
-int Face2Animation = 10;                          // Anzahl Durchläufe der Animation "lila Gesicht" (ca. 140ms pro Durchgang)
-int Face3Animation = 4;                           // Anzahl Durchläufe der Animation "rotes Gesicht" (ca. 1500ms pro Durchgang)
-int FiresAnimation = 15;                          // Anzahl Durchläufe der Animation (ca. 480ms pro Durchgang)
-int DrinkAnimation = 3;                           // Anzahl Durchläufe der Animation (ca. 3200ms pro Durchgang)
-int DigiDugAnimation = 8;                         // Anzahl Durchläufe der Animation (ca. 500ms pro Durchgang)
-int QbertAnimation = 5;                           // Anzahl Durchläufe der Animation (ca. 1000ms pro Durchgang)
-int DemoReel1DugAnimation = 1100;                 // Anzahl Durchläufe der Animationen "rainbow, confetti, rainbowWithGlitter, sinelon"
-int DemoReel2Animation = 510;                     // Anzahl Durchläufe der Animation "bpm, juggle" (ca. 10ms pro Durchgang)
-
-
 //  **************************
 //  *   Definiere WebSever   *
 //  **************************
 
 ESP8266WebServer server(80);
 
-// hold uploaded file
-fs::File fsUploadFile;
+
+
 
 
 
@@ -81,25 +75,40 @@ fs::File fsUploadFile;
 //  *   Interne Variablen    *
 //  **************************
 
-uint8_t brightness = 90;
 int rounds = 0;
-int dauer = 0;
-int x    = matrix->width();
-int pass = 0;
-int pass1 = 0;
-int color = 0;
-int r = 255;
-int g = 255;
-int b = 255;
-int r1 = 255;
-int g1 = 255;
-int b1 = 255;
-long durchgang = 0;
-int matrixBitmap[900];
-char valueget[8];
-String textts = "";
+uint8_t x = matrix->width();
+uint8_t pass = 0;
+uint8_t pass1 = 0;
+
+uint8_t r = 255;
+uint8_t g = 255;
+uint8_t b = 255;
+uint8_t r1 = 255;
+uint8_t g1 = 255;
+uint8_t b1 = 255;
+int durchgang = 0;
+uint8_t matrixBitmap[900];
+String textts = "";                                     //Todo: Save tts to JSON file, to save this global Variable
 static char buf[15];                                    // je nach Format von "strftime" eventuell anpassen
 bool clockSleep = 0;
+
+
+
+
+//  **************************
+//  *      Spotify           *
+//  **************************
+/*
+ArduinoSpotify spotify(client, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_REFRESH_TOKEN);
+unsigned long delayBetweenRequests = 60000; // Time between requests (1 minute)
+unsigned long requestDueTime;               //time when request due
+String spotifyTrack;
+String spotifyArtist;
+bool spotifyPlaying;
+
+// Hier noch host einfügen!!
+char callbackURI[] = "http%3A%2F%2Fchaosuhr.local%2Fcallback%2F";
+*/
 
 
 
@@ -108,14 +117,14 @@ bool clockSleep = 0;
 //  **************************
 unsigned long lastConnectionTime = 1;            // last time you connected to the server, in milliseconds
 const unsigned long postingInterval = 300000L; // Alle 5 Minuten neue Daten, um 50 Abfragen pro Tag nicht zu überschreiten
-String partofday;
+bool partofday;
 int regenmenge;
 int weatherId;
-float weatherTemperature;
+int weatherTemperature;
 int weatherHumidity;
 
 
-WiFiClient client;
+
 
 
 //  **************************
@@ -126,41 +135,26 @@ void setup() {
 
   Serial.begin(115200);
 
-  // Logging all kinds of stuff :D
-
-  Serial.println();
-  Serial.print(F("Heap: ")); Serial.println(system_get_free_heap_size());
-  Serial.print(F("Boot Vers: ")); Serial.println(system_get_boot_version());
-  Serial.print(F("CPU: ")); Serial.println(system_get_cpu_freq());
-  Serial.print(F("SDK: ")); Serial.println(system_get_sdk_version());
-  Serial.print(F("Chip ID: ")); Serial.println(system_get_chip_id());
-  Serial.print(F("Flash ID: ")); Serial.println(spi_flash_get_id());
-  Serial.print(F("Flash Size: ")); Serial.println(ESP.getFlashChipRealSize());
-  Serial.print(F("Vcc: ")); Serial.println(ESP.getVcc());
-  Serial.println();
-
-
-
   //Load Settings from EEPROM
-  EEPROM.begin(512);
+  EEPROM.begin(128);
 
 
   if (EEPROM.read(69) != 1) {
 
     //Write Default Settings
 
-    EEPROM.write(0, brightness);
-    EEPROM.write(1, UhrAnimation);
-    EEPROM.write(2, FaceAnimation);
-    EEPROM.write(3, Face2Animation);
-    EEPROM.write(4, Face3Animation);
-    EEPROM.write(5, FiresAnimation);
-    EEPROM.write(6, DrinkAnimation);
-    EEPROM.write(7, DigiDugAnimation);
-    EEPROM.write(8, QbertAnimation);
-    EEPROM.write(9, DemoReel1DugAnimation / 10);
-    EEPROM.write(10, DemoReel1DugAnimation / 10);
-    EEPROM.write(11, 20);
+    EEPROM.write(0, 90);    //brightness
+    EEPROM.write(1, 2);     // UhrAnimation
+    EEPROM.write(2, 4); //FaceAnimation
+    EEPROM.write(3, 10);  //Face2Animation
+    EEPROM.write(4, 4);  //Face3Animation
+    EEPROM.write(5, 15);  //FiresAnimation
+    EEPROM.write(6, 3);  //DrinkAnimation
+    EEPROM.write(7, 8);  //DigiDugAnimation
+    EEPROM.write(8, 5);  //QbertAnimation
+    EEPROM.write(9, 1100 / 10);    //DemoReel1DugAnimation
+    EEPROM.write(10, 510 / 10);   //DemoReel1DugAnimation
+    EEPROM.write(11, 20);  //WetterAnimation
     EEPROM.write(59, 0); //Zeitschaltung1 deaktiviert
     EEPROM.write(60, 18); //Stunden (von)
     EEPROM.write(61, 0); //Minuten (von)
@@ -173,7 +167,7 @@ void setup() {
     EEPROM.write(68, 0); //Minuten (bis)
     EEPROM.write(69, 1);
     EEPROM.write(70, 1); // Autoplay
-    EEPROM.write(71, 0);
+    EEPROM.write(71, 0); // Standbild-Animation
     EEPROM.write(72, 0);
     EEPROM.write(73, 0);
     EEPROM.write(74, 0);
@@ -187,51 +181,34 @@ void setup() {
     EEPROM.write(83, 0);  //Watchface
     EEPROM.write(84, 1);  //Legacy or Gif-Autoplay?
     EEPROM.write(85, 0);  //Wetter-Anzeige im Autoplay aktiviert?
+    EEPROM.write(100, 10); //Anzahl Wiederholungen der Gif-Animation
     EEPROM.commit();
-  } else {
-
-    brightness = EEPROM.read(0);
-    UhrAnimation = EEPROM.read(1);
-    FaceAnimation = EEPROM.read(2);
-    Face2Animation = EEPROM.read(3);
-    Face3Animation = EEPROM.read(4);
-    FiresAnimation = EEPROM.read(5);
-    DrinkAnimation = EEPROM.read(6);
-    DigiDugAnimation = EEPROM.read(7);
-    QbertAnimation = EEPROM.read(8);
-    DemoReel1DugAnimation = EEPROM.read(9) * 10;
-    DemoReel2Animation = EEPROM.read(10) * 10;
-    WeatherAnimation = EEPROM.read(11);
-
   }
 
   SPIFFS.begin();                           // Start the SPI Flash Files System
 
 
   FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
-  FastLED.setBrightness(brightness);
+  FastLED.setBrightness(EEPROM.read(0));
   FastLED.setMaxPowerInVoltsAndMilliamps(VOLTS, MILLI_AMPS);
 
-  EEPROM.write(70, 1);              // Set Autoplay at boot up, because Gif blocks the Webserver (needs a fix)
+  if (EEPROM.read(71) == 18) EEPROM.write(70, 1);              // Set Autoplay at boot up, because Gif blocks the Webserver (needs a fix)
 
   //  ***************************
   //  *       Starte WLAN       *
   //  ***************************
 
-  //WiFiManager
   WiFiManager wifiManager;
-  WiFi.hostname(host);
+  WiFi.hostname(HOSTNAME);
   WiFi.setSleepMode(WIFI_NONE_SLEEP);
   wifiManager.setBreakAfterConfig(true);
-  if (!wifiManager.autoConnect(host)) {
-    Serial.println("failed to connect, we should reset and see if it connects");
+  if (!wifiManager.autoConnect(HOSTNAME)) {
+
     delay(5000);
     ESP.reset();
   }
   delay(3000);
-  Serial.println("connected...yeey :)");
-  Serial.println("local ip");
-  Serial.println(WiFi.localIP());
+
   delay(5000);
 
 
@@ -241,7 +218,7 @@ void setup() {
   //  ***************************
 
   if (WiFi.status() == WL_CONNECTED) {
-    MDNS.begin(host);
+    MDNS.begin(HOSTNAME);
     Serial.println(WiFi.hostname());
     server.serveStatic("/", SPIFFS, "/index.html");
 
@@ -257,7 +234,14 @@ void setup() {
     server.on("/brightness", HTTP_GET, []() {
       String value = server.arg("value");
       setBrightness(value.toInt());
-      sendInt(brightness);
+    });
+
+    server.on("/getSPIFFSsize", HTTP_GET, []() {
+      FSInfo fs_info;
+      if (!SPIFFS.info(fs_info)) {
+        server.send(400, "text/json", "error");
+      }
+      server.send(200, "text/json", fs_info.totalBytes + "#" + fs_info.usedBytes);
     });
 
     server.on("/settingread", HTTP_GET, []() {
@@ -272,32 +256,6 @@ void setup() {
       EEPROM.write(name, value);
       EEPROM.commit();
       server.send(200, "text/json", String(value));
-    });
-
-
-    server.on("/configwrite", HTTP_GET, []() {
-      const size_t capacity = JSON_OBJECT_SIZE(2);
-      DynamicJsonDocument doc(capacity);
-
-
-      doc["weatherAPI"] = weatherAPI;
-      doc["weatherLocation"] = weatherLocation;
-
-      if (server.arg("name") == "weatherAPI") {
-        doc["weatherAPI"] = server.arg("value");
-      }
-
-      if (server.arg("name") == "weatherLocation") {
-        doc["weatherLocation"] = server.arg("value");
-      }
-
-      serializeJson(doc, Serial);
-
-      File file = SPIFFS.open("/config.json", "w");
-      file.print(Serial);
-      file.close();
-
-      server.send(200, "text/json", "ok");
     });
 
 
@@ -317,9 +275,9 @@ void setup() {
     server.on("/matrixpixel", HTTP_POST, []() {
 
       const size_t capacity = JSON_ARRAY_SIZE(900);
-      DynamicJsonDocument doc(capacity);
+      StaticJsonDocument<capacity> mat;
 
-      DeserializationError err = deserializeJson(doc, server.arg("data"));
+      DeserializationError err = deserializeJson(mat, server.arg("data"));
       Serial.print(server.arg("data"));
 
       if (err) {
@@ -327,11 +285,10 @@ void setup() {
         Serial.println(err.c_str());
       }
 
-      if (!copyArray(doc, matrixBitmap)) {                              /* CopyArray funktioniert öfters nicht.. */
-        Serial.print("Error in copyArray occured");
+      if (!copyArray(mat, matrixBitmap)) {                              /* CopyArray funktioniert öfters nicht.. */
         server.send(200, "text/json", "error occured" );
       }
-      doc.clear();
+      mat.clear();
 
       server.send(200, "text/json", "ok" );
 
@@ -352,37 +309,40 @@ void setup() {
 
     server.on("/restart", HTTP_GET, []() {
       server.send(200, "text/html", "Restart_Ok");
-      FastLED.setBrightness(brightness);
-        matrix->fillScreen(matrix->Color(128, 255, 0));
-        matrix->setTextColor(matrix->Color(0, 0, 255));
-        matrix->setCursor(1, 6);
-        matrix->setFont(&Picopixel);
-        matrix->print("Rload");
-        matrix->setCursor(1, 13);
-        matrix->print("Chaos");
-        matrix->show();
+      FastLED.setBrightness(EEPROM.read(0));
+      matrix->fillScreen(matrix->Color(128, 255, 0));
+      matrix->setTextColor(matrix->Color(0, 0, 255));
+      matrix->setCursor(1, 6);
+      matrix->setFont(&Picopixel);
+      matrix->print("Rload");
+      matrix->setCursor(1, 13);
+      matrix->print("Chaos");
+      matrix->show();
       delay(500);
       ESP.restart();
     });
 
     server.on("/resetWifiConfig", HTTP_GET, []() {
-        FastLED.setBrightness(brightness);
-        matrix->fillScreen(matrix->Color(179, 30, 0));
-        matrix->setTextColor(matrix->Color(0, 149, 179));
-        matrix->setCursor(1, 6);
-        matrix->setFont(&Picopixel);
-        matrix->print("Reset");
-        matrix->setCursor(1, 13);
-        matrix->print("WiFi");
-        matrix->show();
-        
+      FastLED.setBrightness(EEPROM.read(0));
+      matrix->fillScreen(matrix->Color(179, 30, 0));
+      matrix->setTextColor(matrix->Color(0, 149, 179));
+      matrix->setCursor(1, 6);
+      matrix->setFont(&Picopixel);
+      matrix->print("Reset");
+      matrix->setCursor(1, 13);
+      matrix->print("WiFi");
+      matrix->show();
+
       server.send(200, "text/html", "ResetWifiConfig_ok");
-        delay(500);
+      delay(500);
       WiFiManager wifiManager;
       wifiManager.resetSettings();
       delay(500);
       ESP.restart();
     });
+
+    server.on("/spotify", handleSpotifyRoot);
+    server.on("/callback/", handleSpotifyCallback);
 
     server.on("/scrolltext", HTTP_GET, []() {
       textts = server.arg("value");
@@ -397,7 +357,7 @@ void setup() {
       HTTPUpload& upload = server.upload();
       if (upload.status == UPLOAD_FILE_START) {
 
-        FastLED.setBrightness(brightness);
+        FastLED.setBrightness(EEPROM.read(0));
         matrix->fillScreen(matrix->Color(84, 92, 99));
         matrix->setTextColor(matrix->Color(124, 252, 0));
         matrix->setCursor(1, 9);
@@ -429,10 +389,57 @@ void setup() {
     server.begin();
     MDNS.addService("http", "tcp", 80);
 
-    Serial.printf("Ready! Open http://%s.local in your browser\n", host);
+
+
   } else {
-    Serial.println("WiFi Failed");
+    Serial.println(F("WiFi Failed"));
   }
+
+
+
+  //  ***************************
+  //  *      Setup Uhrzeit      *
+  //  ***************************
+
+
+  setupTime();
+
+
+
+  //  ***************************
+  //  *      Setup Wetter       *
+  //  ***************************
+
+
+  updateWeather();
+
+  Serial.println(ESP.getFreeHeap(), DEC);
+
+  //  ***************************
+  //  *      Setup Spotify      *
+  //  ***************************
+
+
+
+  // Crashes the ESP8266.. needs further investigation - Probably  Stack overflow -- Need to clean up Ram
+
+
+  // If you want to enable some extra debugging
+  // uncomment the "#define SPOTIFY_DEBUG" in ArduinoSpotify.h
+
+
+
+
+/*
+  Serial.println(F("Refreshing Access Tokens"));
+  if (!spotify.refreshAccessToken()) {
+    Serial.println(F("Failed to get access tokens"));
+  }
+*/
+
+
+
+
 
   //  ***************************
   //  *      Starte Matrix      *
@@ -440,7 +447,7 @@ void setup() {
 
   matrix->begin();
   matrix->setTextWrap(false);
-  matrix->setBrightness(brightness);
+  matrix->setBrightness(EEPROM.read(0));
   matrix->setFont(&TomThumb);
 
 
@@ -456,18 +463,9 @@ void setup() {
   matrix->setCursor(0, 13);
   matrix->print("CHAOS");
   matrix->show();
-  delay(1000);
-  matrix->fillScreen(0);
+  delay(500);
 
 
-
-  //  ***************************
-  //  *      Setup Uhrzeit      *
-  //  ***************************
-
-  setupTime();
-
-  updateWeather();
 
 }
 
@@ -477,20 +475,21 @@ void handleGifDelete() {
   if (path == "/") return server.send(500, "text/plain", "BAD PATH!");
   if (!SPIFFS.exists(path)) return server.send(404, "text/plain", "FILE NOT FOUND!");
   SPIFFS.remove(path);
-  Serial.println("DELETE: " + path);
   String msg = "deleted file: " + path;
   server.send(200, "text/plain", msg);
 }
 
 void handleGifUpload()
 {
+
+  fs::File fsUploadFile;
+
   HTTPUpload& upload = server.upload();
   if (upload.status == UPLOAD_FILE_START)
   {
     String filename = upload.filename;
     if (!filename.startsWith("/"))
       filename = "/" + filename;
-    Serial.print("handleFileUpload Name: "); Serial.println(filename);
     filename = "/gif" + filename;
     fsUploadFile = SPIFFS.open(filename, "w");
   } else if (upload.status == UPLOAD_FILE_WRITE)
@@ -501,7 +500,6 @@ void handleGifUpload()
   {
     if (fsUploadFile)
       fsUploadFile.close();
-    Serial.print("handleFileUpload Size: "); Serial.println(upload.totalSize);
   }
 }
 
@@ -563,7 +561,6 @@ void handleWebRequests() {
     message += " NAME:" + server.argName(i) + "\n VALUE:" + server.arg(i) + "\n";
   }
   server.send(404, "text/plain", message);
-  Serial.println(message);
 
 }
 
@@ -574,21 +571,23 @@ void setupTime() {
 }
 
 void updateWeather() {
-  if (client.connect("api.weatherbit.io", 80))
+
+  WiFiClient client80;
+
+  if (client80.connect("api.weatherbit.io", 80))
   {
-    Serial.println("connecting to weatherbit.io...");
 
-    String url = "/v2.0/current?city=" + String(weatherLocation) + "&key=" + String(weatherAPI);
+    String url = "/v2.0/current?city=" + String(WEATHER_LOCATION) + "&key=" + String(WEATHER_API);
 
-    client.print(String("GET ") + url + " HTTP/1.1\r\n" +
-                 "Host: " + "api.weatherbit.io" + "\r\n" +
-                 "User-Agent: BuildFailureDetectorESP8266\r\n" +
-                 "Connection: close\r\n\r\n");
+    client80.print(String("GET ") + url + " HTTP/1.1\r\n" +
+                   "Host: " + "api.weatherbit.io" + "\r\n" +
+                   "User-Agent: BuildFailureDetectorESP8266\r\n" +
+                   "Connection: close\r\n\r\n");
 
 
     // Check HTTP status
     char status[32] = {0};
-    client.readBytesUntil('\r', status, sizeof(status));
+    client80.readBytesUntil('\r', status, sizeof(status));
     if (strcmp(status, "HTTP/1.1 200 OK") != 0) {
       Serial.print(F("Unexpected response: "));
       Serial.println(status);
@@ -598,14 +597,14 @@ void updateWeather() {
 
     // Skip HTTP headers
     char endOfHeaders[] = "\r\n\r\n";
-    if (!client.find(endOfHeaders)) {
+    if (!client80.find(endOfHeaders)) {
       Serial.println(F("Invalid response"));
       return;
     }
 
     const size_t capacity = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(36) + 450;
     DynamicJsonDocument wea(capacity);
-    DeserializationError error = deserializeJson(wea, client);
+    DeserializationError error = deserializeJson(wea, client80);
     if (error) {
       Serial.print(F("deserializeJson() failed: "));
       Serial.println(error.c_str());
@@ -614,19 +613,28 @@ void updateWeather() {
     JsonObject data_0 = wea["data"][0];
     JsonObject data_0_weather = data_0["weather"];
     weatherId = data_0_weather["code"];
-    weatherTemperature = data_0["temp"];
+    weatherTemperature = (int)(data_0["temp"].as<float>() + .5);
     weatherHumidity = data_0["rh"];
-    partofday = data_0["pod"].as<String>();
+    if (data_0["pod"].as<String>() == "d") {
+      partofday = 0;
+    } else {
+      partofday = 1;
+    }
     regenmenge = data_0["precip"];
+
+    wea.clear();
 
     Serial.println(weatherId);
     lastConnectionTime = millis();
 
   } else {
-    Serial.println("Error connecting to WeatherAPI");
+
     return;
   }
 }
+
+
+
 
 void setBrightness(uint8_t value)
 {
@@ -634,14 +642,14 @@ void setBrightness(uint8_t value)
     value = 255;
   else if (value < 0) value = 0;
 
-  brightness = value;
 
-  FastLED.setBrightness(brightness);
 
-  EEPROM.write(0, brightness);
+  FastLED.setBrightness(value);
+
+  EEPROM.write(0, value);
   EEPROM.commit();
 
-  broadcastInt("brightness", brightness);
+  broadcastInt("brightness", value);
 }
 
 void broadcastInt(String name, uint8_t value)
@@ -656,9 +664,10 @@ void broadcastString(String name, String value)
   //  webSocketsServer.broadcastTXT(json);
 }
 
+
 void showBitmap()
 {
-  FastLED.setBrightness(brightness);
+  FastLED.setBrightness(EEPROM.read(0));
   matrix->clear();
   int x_pos = 0;
   int y_pos = -1;
@@ -680,15 +689,6 @@ void showBitmap()
 
 }
 
-void sendInt(uint8_t value)
-{
-  sendString(String(value));
-}
-
-void sendString(String value)
-{
-  server.send(200, "text/plain", value);
-}
 
 //  ***************************
 //  *  Animationsdefinitonen  *
@@ -735,12 +735,12 @@ void loop() {
 
           Uhrzeit();
           if (EEPROM.read(83) == 0) {
-            if (durchgang >= UhrAnimation) {
+            if (durchgang >= EEPROM.read(1)) {
               durchgang = 0;
               nextPattern();
             }
           } else {
-            if (durchgang >= UhrAnimation * 80) {
+            if (durchgang >= EEPROM.read(1) * 80) {
               durchgang = 0;
               nextPattern();
             }
@@ -748,20 +748,18 @@ void loop() {
         }
 
         else {
-          Serial.print("Pattern: ");
-          Serial.println(gCurrentPatternNumber);
-          Serial.println();
+
           gPatterns[gCurrentPatternNumber]();
           gHue++;
           if (gCurrentPatternNumber == 8 || gCurrentPatternNumber == 9 || gCurrentPatternNumber == 10 || gCurrentPatternNumber == 11) {
-            if (rounds >= DemoReel1DugAnimation) {
+            if (rounds >= EEPROM.read(9) * 10) {
               rounds = 0;
               FastLED.clear();
               nextPattern();
             }
           }
           else if (gCurrentPatternNumber == 12 || gCurrentPatternNumber == 13) {
-            if (rounds >= DemoReel2Animation) {
+            if (rounds >= EEPROM.read(10) * 10) {
               rounds = 0;
               FastLED.clear();
               nextPattern();
@@ -775,22 +773,23 @@ void loop() {
 
 
           if (EEPROM.read(83) == 0) {
-            if (durchgang >= UhrAnimation + EEPROM.read(11)) {
+            if (durchgang >= EEPROM.read(1) + EEPROM.read(11)) {
               durchgang = 0;
               showGif();
             } else {
-              if (durchgang >= UhrAnimation) {
+              if (durchgang >= EEPROM.read(1)) {
                 showWeather();
+
               } else {
                 Uhrzeit();
               }
             }
           } else {
-            if (durchgang >= UhrAnimation * 50 + EEPROM.read(11)) {
+            if (durchgang >= EEPROM.read(1) * 50 + EEPROM.read(11)) {
               durchgang = 0;
               showGif();
             } else {
-              if (durchgang >= UhrAnimation * 50) {
+              if (durchgang >= EEPROM.read(1) * 50) {
                 showWeather();
               } else {
                 Uhrzeit();
@@ -807,14 +806,14 @@ void loop() {
 
 
           if (EEPROM.read(83) == 0) {
-            if (durchgang >= UhrAnimation) {
+            if (durchgang >= EEPROM.read(1)) {
               durchgang = 0;
               showGif();
             } else {
               Uhrzeit();
             }
           } else {
-            if (durchgang >= UhrAnimation * 50) {
+            if (durchgang >= EEPROM.read(1) * 50) {
               durchgang = 0;
               showGif();
             } else {
@@ -900,172 +899,10 @@ void loop() {
 
 }
 
-//  ***************************
-//  *     Uhrzeit anzeigen    *
-//  ***************************
 
-void Uhrzeit() {
-
-  FastLED.setBrightness(brightness);
-  static time_t lastsek {0};
-  time_t now = time(&now);
-  localtime_r(&now, &lt);
-  if (lt.tm_sec != lastsek) {
-    lastsek = lt.tm_sec;
-    if (!(time(&now))) {                         // einmal am Tag die Zeit vom NTP Server holen o. jede Stunde "% 3600" aller zwei "% 7200"
-      setupTime();
-    }
-    strftime (buf, sizeof(buf), "%d.%m.%Y", &lt);      // http://www.cplusplus.com/reference/ctime/strftime/
-  }
-
-  matrix->clear();
-
-  // Uhr-Hintergrund anzeigen
-
-  matrix->fillScreen(matrix->Color(EEPROM.read(80), EEPROM.read(81), EEPROM.read(82)));
-
-
-
-
-  if (EEPROM.read(78) == 0) {
-    matrix->setFont(&TomThumb);
-  }
-  if (EEPROM.read(78) == 1) {
-    matrix->setFont(&Picopixel);
-  }
-  if (EEPROM.read(78) == 2) {
-    matrix->setFont(&apridot4pt7b);
-  }
-  if (EEPROM.read(78) == 3) {
-    matrix->setFont(&spacerock_minecraft4pt7b);
-  }
-  if (EEPROM.read(78) == 4) {
-    matrix->setFont(&art_bitco4pt7b);
-  }
-
-  matrix->setTextColor(matrix->Color(r1, g1, b1));
-
-
-  //Uhrzeit Standard Watchface
-
-  if (EEPROM.read(83) == 0) {
-
-    if (EEPROM.read(78) == 0 or EEPROM.read(78) == 1 or EEPROM.read(78 == 5)) {
-      matrix->setCursor(2, 6);
-    }
-
-    if (EEPROM.read(78) == 2 or EEPROM.read(78) == 3 or EEPROM.read(78) == 4) {
-      matrix->setCursor(0, 6);
-    }
-
-    if (EEPROM.read(78) == 2 or EEPROM.read(78) == 3 or EEPROM.read(78) == 4) {
-      matrix->printf("%.2d%.2d", lt.tm_hour, lt.tm_min);
-    } else {
-      matrix->printf("%.2d:%.2d", lt.tm_hour, lt.tm_min);
-    }
-
-  }
-
-  // SimpleClock Watchface
-
-  if (EEPROM.read(83) == 2) {
-
-    matrix->setFont(&spacerock_minecraft4pt7b);
-    matrix->fillScreen(0);
-    matrix->setCursor(3, 6);
-    matrix->setTextColor(matrix->Color(31, 102, 229));
-    matrix->printf("%.2d", lt.tm_hour);
-    matrix->setCursor(7, 13);
-    matrix->setTextColor(matrix->Color(31, 201, 229));
-    matrix->printf("%.2d", lt.tm_min);
-
-  }
-
-
-
-  // Game Frame Clone Watchface
-
-  if (EEPROM.read(83) == 1) {
-    int pixelsecx;
-    int pixelsecy;
-
-    matrix->setFont(&to_infinity3pt7b);
-    matrix->fillScreen(0);
-    //matrix->setCursor(1, 9);
-    matrix->setCursor(0, 11);
-    matrix->setTextColor(matrix->Color(255, 20, 147));
-    matrix->printf("%.2d", lt.tm_hour);
-    //matrix->setCursor(10, 9);
-    matrix->setCursor(10, 11);
-    matrix->setTextColor(matrix->Color(20, 255, 246));
-    matrix->printf("%.2d", lt.tm_min);
-    if (lt.tm_sec < 20) {
-      pixelsecy = 0;
-    } else {
-      if (lt.tm_sec >= 40) {
-        //pixelsecy = 10;
-        pixelsecy = 3;
-      } else {
-        pixelsecy = 14;
-      }
-    }
-    pixelsecx = lt.tm_sec % 20;
-    matrix->drawPixel(pixelsecx, pixelsecy, CRGB(255, 255, 255));
-
-  }
-
-
-  //Wenn Standard-Watchface ausgewählt, Zeige Datum mit Laufschrift.
-  if (EEPROM.read(83) == 0) {
-    Datum();
-
-  } else {
-
-    matrix->show();
-    delay(120);
-    durchgang++;
-
-  }
-}
-
-//  ***************************
-//  *      Scroll Datum       *
-//  ***************************
-
-void Datum() {
-  char datum[30];
-  sprintf(datum, "%s   %s", dayNames[lt.tm_wday], buf);
-  int scroll = (strlen(datum) * -3) - ((strlen(dayNames[lt.tm_wday])) * 2) + 3 ; //Anzahl Pixel + Leerzeichen
-  matrix->setTextColor(matrix->Color(r, g, b));
-  matrix->setCursor(x, 13);
-  if (EEPROM.read(78) == 0) {
-    matrix->setFont(&TomThumb);
-  }
-  if (EEPROM.read(78) == 1) {
-    matrix->setFont(&Picopixel);
-  }
-  if (EEPROM.read(78) == 2) {
-    matrix->setFont(&apridot4pt7b);
-  }
-  if (EEPROM.read(78) == 3) {
-    matrix->setFont(&spacerock_minecraft4pt7b);
-  }
-  if (EEPROM.read(78) == 4) {
-    matrix->setFont(&art_bitco4pt7b);
-  }
-
-  matrix->printf(datum);
-  if (--x < scroll) {
-    x = matrix->width();
-    DatumFarbWechsel();
-    durchgang++;
-  }
-  matrix->show();
-  delay(125);
-}
 
 void showText() {
-  FastLED.setBrightness(brightness);
+  FastLED.setBrightness(EEPROM.read(0));
   matrix->clear();
   int scroll = textts.length() * -3 - 10;
   matrix->setTextColor(matrix->Color(EEPROM.read(75), EEPROM.read(76), EEPROM.read(77)));
@@ -1095,11 +932,12 @@ void showText() {
 }
 
 void solidColor() {
-  FastLED.setBrightness(brightness);
+  FastLED.setBrightness(EEPROM.read(0));
   matrix->clear();
   fill_solid( leds, NUM_LEDS, CRGB(EEPROM.read(72), EEPROM.read(73), EEPROM.read(74)));
   matrix->show();
 }
+
 
 
 void showWeather() {
@@ -1110,19 +948,18 @@ void showWeather() {
   }
 
 
-  int wtemprounded = (int)(weatherTemperature + .5);
-  FastLED.setBrightness(brightness);
+  FastLED.setBrightness(EEPROM.read(0));
   matrix->clear();
   matrix->setTextColor(matrix->Color(255, 255, 255));
   matrix->setCursor(6, 14);
   matrix->setFont(&TomThumb);
-  matrix->print(wtemprounded);
+  matrix->print(weatherTemperature);
   matrix->print("C");
   matrix->drawPixel(18, 9, CRGB(255, 255, 255));
 
   if (weatherId == 801 || weatherId == 802) {
 
-    if (partofday == "d") {
+    if (!partofday) {
       File imageFile = SPIFFS.open("/weather/cloudy.gif", "r");
       gifPlayer.setFile(imageFile);
       gifPlayer.parseGifHeader();
@@ -1155,7 +992,7 @@ void showWeather() {
 
 
   if (weatherId == 800) {
-    if (partofday == "d") {
+    if (!partofday) {
       File imageFile = SPIFFS.open("/weather/sunny.gif", "r");
       gifPlayer.setFile(imageFile);
       gifPlayer.parseGifHeader();
@@ -1225,7 +1062,7 @@ void showWeather() {
 
 
   if (weatherId == 521) {
-    if (partofday == "d") {
+    if (!partofday) {
       File imageFile = SPIFFS.open("/weather/rainsunny.gif", "r");
       gifPlayer.setFile(imageFile);
       gifPlayer.parseGifHeader();
@@ -1256,7 +1093,6 @@ void showGif() {
 
   // Todo: Implement a timer, to control length of Gif-Animation
 
-  Serial.print("GifReader started");
   String fileN;
   int num = 0;
   Dir dir = SPIFFS.openDir("/gif");
@@ -1264,9 +1100,13 @@ void showGif() {
     num++;
   }
 
+  if (num == 0) {
+
+    return;
+  }
+
   int ran = random(num);
-  Serial.println("Random Number");
-  Serial.println(num);
+
 
   Dir folder = SPIFFS.openDir("/gif");
 
@@ -1282,28 +1122,26 @@ void showGif() {
 
   uint32_t result;
 
-  Serial.print("Reading ");
-  Serial.println(fileN);
+
 
   File imageFile = SPIFFS.open(fileN, "r");
   if (!imageFile) {
-    Serial.println("Failed to open");
+
     return;
   }
 
   gifPlayer.setFile(imageFile);
 
-  for (uint8_t c = 0; c < 10; c++) {
+  for (uint8_t c = 0; c < EEPROM.read(100); c++) {                // Number of Repeats of the Gif-Animation
     if (!gifPlayer.parseGifHeader()) {
       imageFile.close();
-      Serial.println("No gif header");
+
       return;
     }
 
     matrix->clear();
     gifPlayer.parseLogicalScreenDescriptor();
     gifPlayer.parseGlobalColorTable();
-    Serial.println("Processing gif");
     do {                                            // Very bad code!! needs to be a non-blocking function.
       gifPlayer.drawFrame();
       result = gifPlayer.drawFrame();
@@ -1313,7 +1151,7 @@ void showGif() {
     imageFile.seek(0);
   }
 
-  Serial.println("Gif finished");
+
   imageFile.close();
 
   durchgang++;
@@ -1468,567 +1306,4 @@ void UhrzeitFarbWechsel() {
     b1 = 255;
     pass1 = 0;
   }
-}
-
-
-
-
-
-//  ***************************
-//  *    Figur Animationen    *
-//  ***************************
-
-void Drink() {
-  int rounds = 0;
-  while (rounds <= DrinkAnimation) {
-    //    1st Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink01[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    2nd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink02[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    3rd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink03[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    4th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink04[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    5th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink05[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    6th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink06[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    7th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink07[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    8th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink08[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    9th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink09[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    10th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink010[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    11th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink011[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    12th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink012[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    13th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink013[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    14th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink014[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    15th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink015[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-
-    //    16th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Drink016[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(200);
-    rounds++;
-  }
-  nextPattern();
-}
-
-
-void Qbert() {
-  int rounds = 0;
-  while (rounds <= QbertAnimation) {
-    //    1st Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Qbert01[i]));  // Read array from Flash
-    }
-    FastLED.show();
-    delay(500);
-
-
-    //    2nd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Qbert02[i]));
-    }
-    FastLED.show();
-    delay(500);
-    rounds++;
-  }
-  nextPattern();
-}
-
-void DigiDug() {
-  int rounds = 0;
-  while (rounds <= DigiDugAnimation) {
-    //    1st Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(DigDug01[i]));
-    }
-    FastLED.show();
-    delay(250);
-
-    //    2nd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(DigDug02[i]));
-    }
-    FastLED.show();
-    delay(250);
-    rounds++;
-  }
-  nextPattern();
-}
-
-void Face() {
-  int rounds = 0;
-  while (rounds < FaceAnimation) {
-    //    1st Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face001[i]));
-    }
-    FastLED.show();
-    delay(2000);
-
-    //    2nd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face002[i]));
-    }
-    FastLED.show();
-    delay(1000);
-
-    //    3rd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face003[i]));
-    }
-    FastLED.show();
-    delay(1000);
-
-    //    4th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face001[i]));
-    }
-    FastLED.show();
-    delay(1000);
-
-    //    5th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS ; i++) {
-      leds[i] = pgm_read_dword(&(Face004[i]));
-    }
-    FastLED.show();
-    delay(40);
-
-    //    6th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS + 1; i++) {
-      leds[i] = pgm_read_dword(&(Face005[i]));
-    }
-    FastLED.show();
-    delay(40);
-
-    //    7th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS + 1; i++) {
-      leds[i] = pgm_read_dword(&(Face007[i]));
-    }
-    FastLED.show();
-    delay(40);
-
-    //    8th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS + 1; i++) {
-      leds[i] = pgm_read_dword(&(Face008[i]));
-    }
-    FastLED.show();
-    delay(60);
-
-    //    9th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS + 1; i++) {
-      leds[i] = pgm_read_dword(&(Face007[i]));
-    }
-    FastLED.show();
-    delay(40);
-
-    //    10th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS + 1; i++) {
-      leds[i] = pgm_read_dword(&(Face005[i]));
-    }
-    FastLED.show();
-    delay(40);
-
-    //    11th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS + 1; i++) {
-      leds[i] = pgm_read_dword(&(Face004[i]));
-    }
-    FastLED.show();
-    delay(40);
-    rounds++;
-  }
-  nextPattern();
-}
-
-void Face2() {
-  int rounds = 0;
-  while (rounds < Face2Animation) {
-    //    1st Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face202[i]));
-    }
-    FastLED.show();
-    delay(700);
-
-    //    2nd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face203[i]));
-    }
-    FastLED.show();
-    delay(700);
-    rounds++;
-  }
-  nextPattern();
-}
-
-void Face3() {
-  int rounds = 0;
-  while (rounds < Face3Animation) {
-    //  1st Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face301[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  2nd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face302[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  3rd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face303[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  4th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face304[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  5th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face305[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  6th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face306[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  7th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face307[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  8th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face308[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  9th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face309[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  10th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face310[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  11th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face311[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  12th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face312[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  13th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face313[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  14th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face314[i]));
-    }
-    FastLED.show();
-    delay(100);
-
-    //  15th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Face315[i]));
-    }
-    FastLED.show();
-    delay(100);
-    rounds++;
-  }
-  nextPattern();
-}
-
-void Fires() {
-  int rounds = 0;
-  while (rounds < FiresAnimation) {
-    //  1st Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Feuer1[i]));
-    }
-    FastLED.show();
-    delay(80);
-
-    //  2nd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Feuer2[i]));
-    }
-    FastLED.show();
-    delay(80);
-
-    //  3rd Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Feuer3[i]));
-    }
-    FastLED.show();
-    delay(80);
-
-    //  4th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Feuer4[i]));
-    }
-    FastLED.show();
-    delay(80);
-
-    //  5th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Feuer5[i]));
-    }
-    FastLED.show();
-    delay(80);
-
-    //  6th Frame
-    FastLED.clear();
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = pgm_read_dword(&(Feuer6[i]));
-    }
-    FastLED.show();
-    delay(80);
-    rounds++;
-  }
-  nextPattern();
-}
-
-//  ***************************
-//  *   DEMO Reel Animation   *
-//  ***************************
-
-void rainbow() {
-  FastLED.setBrightness(brightness);
-  fill_rainbow( leds, NUM_LEDS, gHue * 2, 7);
-  FastLED.show();
-  rounds++;
-}
-
-void rainbowWithGlitter() {
-  FastLED.setBrightness(brightness);
-  fill_rainbow( leds, NUM_LEDS, gHue * 2, 7);
-  addGlitter(50);
-  FastLED.show();
-  rounds++;
-}
-
-void addGlitter( fract8 chanceOfGlitter)
-{
-  if ( random8() < chanceOfGlitter) {
-    leds[ random16(NUM_LEDS) ] += CRGB::White;
-  }
-}
-
-void confetti() {
-  FastLED.setBrightness(brightness * 2);
-  fadeToBlackBy( leds, NUM_LEDS, 50);
-  int pos = random16(NUM_LEDS);
-  leds[pos] += CHSV( gHue * 2 + random16(150), 210, 255);
-  FastLED.show();
-  rounds++;
-}
-
-void sinelon() {
-  FastLED.setBrightness(brightness * 2);
-  fadeToBlackBy( leds, NUM_LEDS, 10);
-  int pos = beatsin16( 25, 0, NUM_LEDS - 1 );
-  leds[pos] += CHSV( gHue, 255, 210);
-  FastLED.show();
-  rounds++;
-}
-
-void bpm() {
-  FastLED.setBrightness(brightness);
-  uint8_t BeatsPerMinute = 45;
-  CRGBPalette16 palette = PartyColors_p;
-  uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-  for ( int i = 0; i < NUM_LEDS; i++) { //9948
-    leds[i] = ColorFromPalette(palette, gHue + (i * 2), beat - gHue + (i * 10));
-  }
-  FastLED.show();
-  FastLED.delay(10);
-  rounds++;
-
-}
-
-void juggle() {
-  FastLED.setBrightness(brightness);
-  fadeToBlackBy( leds, NUM_LEDS, 60);
-  byte dothue = 0;
-  for ( int i = 0; i < 9; i++) {
-    leds[beatsin16( i + 7, 0, NUM_LEDS - 1 )] |= CHSV(dothue, 210, 255);
-    dothue += 28;
-  }
-  FastLED.show();
-  FastLED.delay(10);
-  rounds++;
-
 }
