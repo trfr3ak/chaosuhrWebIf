@@ -104,6 +104,7 @@ bool clockSleep = 0;
 
 
 WiFiClientSecure client;
+WiFiClient client80;
 
 //  **************************
 //  *      Spotify           *
@@ -574,7 +575,7 @@ void setupTime() {
 
 void updateWeather() {
 
-  WiFiClient client80;
+  
 
   if (client80.connect("api.weatherbit.io", 80))
   {
