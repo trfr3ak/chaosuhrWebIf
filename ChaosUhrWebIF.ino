@@ -76,6 +76,8 @@ GifPlayer gifPlayer;      //Takes up a looooot of Ram!
 
 ESP8266WebServer server(80);
 
+// hold uploaded file
+fs::File fsUploadFile;
 
 
 
@@ -478,7 +480,7 @@ void handleGifDelete() {
   if (path == "/") return server.send(500, "text/plain", "BAD PATH!");
   if (!SPIFFS.exists(path)) return server.send(404, "text/plain", "FILE NOT FOUND!");
   SPIFFS.remove(path);
-  String msg = "deleted file: " + path;
+  String msg = "deleted file:" + path;
   server.send(200, "text/plain", msg);
 }
 
