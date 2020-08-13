@@ -487,8 +487,6 @@ void handleGifDelete() {
 void handleGifUpload()
 {
 
-  fs::File fsUploadFile;
-
   HTTPUpload& upload = server.upload();
   if (upload.status == UPLOAD_FILE_START)
   {
